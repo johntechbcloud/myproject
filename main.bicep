@@ -22,7 +22,7 @@ param subnet2Prefix string
 @description('Tags to apply to the resources for billing and tracking')
 param tags object = {
   Environment: 'Dev'
-  Project: 'CitiBank'
+  Project: 'Tesla'
   Owner: 'John'
   ManagedBy: 'CI/CD Pipeline'
 }
