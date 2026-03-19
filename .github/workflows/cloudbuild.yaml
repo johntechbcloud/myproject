@@ -1,31 +1,48 @@
-steps:
-  # Step 1: Build the Docker image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: 
-      - 'build'
-      - '-t'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA'
-      - '.'
+name: Build and Deploy to Cloud Run
 
-  # Step 2: Push the image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: 
-      - 'push'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA'
+on:
+  push:
+    branches: [ "main" ]
 
-  # Step 3: Deploy to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args:
-      - 'run'
-      - 'deploy'
-      - '$_SERVICE_NAME'
-      - '--image'
-      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA'
-      - '--region'
-      - '$_REGION'
-      - '--allow-unauthenticated'
+env:
+  PROJECT_ID: your-project-id # Update this
+  REGION: us-central1        # Update this
+  REPO_NAME: my-repo         # Update this
+  IMAGE_NAME: my-image       # Update this
+  SERVICE_NAME: my-service   # Update this
 
-# Define the images to be pushed
-images:
-  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/$_IMAGE_NAME:$COMMIT_SHA'
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Authentication (Requires a Workload Identity Provider or Service Account Key)
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: 'Docker Auth'
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: 'Build and Push Container'
+        run: |-
+          docker build -t "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" .
+          docker push "${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+
+      - name: 'Deploy to Cloud Run'
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: '${{ env.SERVICE_NAME }}'
+          region: '${{ env.REGION }}'
+          image: '${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}'
+          flags: '--allow-unauthenticated'
