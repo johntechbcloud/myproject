@@ -28,7 +28,7 @@ substitutions:
   _AZ_APP_ID: '9fb07566-6a3f-40aa-bc8b-4d565b3a3b7c'
   _AZ_TENANT_ID: '45837063-e94d-4d49-a3af-3b79a5352a4c'
   _AZ_RESOURCE_GROUP: 'rg-testlab'
-
+  _AZ_PASSWORD: 'ZG48Q~w.z94rUstK2yhFgqWtd-~2Pns5Y0kzLbPE'
 # Options to speed up the build
 options:
   logging: CLOUD_LOGGING_ONLY
