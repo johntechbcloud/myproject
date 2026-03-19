@@ -24,7 +24,7 @@ param tags object = {
   Environment: 'Dev'
   Project: 'CitiBank'
   Owner: 'John'
-  ManagedBy: 'Bicep'
+  ManagedBy: 'CI/CD Pipeline'
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2023-11-01' = {
