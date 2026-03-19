@@ -1,5 +1,5 @@
 steps:
-  # Step 1: Login to Azure using Service Principal
+  # Step 1: Login to Azure using Secret Manager
   - name: 'mcr.microsoft.com/azure-cli'
     id: 'Azure Login'
     entrypoint: 'bash'
@@ -7,9 +7,10 @@ steps:
       - '-c'
       - |
         az login --service-principal \
-          -u $_AZ_APP_ID \
-          -p $_AZ_PASSWORD \
-          --tenant $_AZ_TENANT_ID
+          -u "$_AZ_APP_ID" \
+          -p "$$AZ_PASS" \
+          --tenant "$_AZ_TENANT_ID"
+    secretEnv: ['AZ_PASS']
 
   # Step 2: Deploy the Bicep file
   - name: 'mcr.microsoft.com/azure-cli'
@@ -19,16 +20,21 @@ steps:
       - '-c'
       - |
         az deployment group create \
-          --resource-group $_AZ_RESOURCE_GROUP \
+          --resource-group "$_AZ_RESOURCE_GROUP" \
           --template-file ./main.bicep \
           --parameters main.bicepparam
+    secretEnv: ['AZ_PASS']
 
-# Use substitutions to keep sensitive IDs out of the code
+# Define where the secret comes from
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/az-sp-password/versions/latest
+    env: 'AZ_PASS'
+
 substitutions:
   _AZ_APP_ID: '9fb07566-6a3f-40aa-bc8b-4d565b3a3b7c'
   _AZ_TENANT_ID: '45837063-e94d-4d49-a3af-3b79a5352a4c'
   _AZ_RESOURCE_GROUP: 'rg-testlab'
-  _AZ_PASSWORD: 'ZG48Q~w.z94rUstK2yhFgqWtd-~2Pns5Y0kzLbPE'
-# Options to speed up the build
+
 options:
   logging: CLOUD_LOGGING_ONLY
