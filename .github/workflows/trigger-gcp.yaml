@@ -9,7 +9,7 @@ jobs:
   deploy-to-azure-via-gcp:
     runs-on: ubuntu-latest
     
-    # Required for Google Workload Identity (if you use it later)
+    # Required for Google Workload Identity
     permissions:
       contents: 'read'
       id-token: 'write'
@@ -30,9 +30,9 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
 
       # Step 3: Submit the build to Google Cloud Build
-      # Note: We pass the Azure Secret from GitHub Secrets into the GCP substitution
+      # We no longer pass _AZ_PASSWORD here because Cloud Build 
+      # will pull it from Secret Manager automatically.
       - name: 'Run Cloud Build'
         run: |
           gcloud builds submit . \
-            --config=cloudbuild.yaml \
-            --substitutions=_AZ_PASSWORD="${{ secrets.AZURE_CLIENT_SECRET }}"
+            --config=cloudbuild.yaml
