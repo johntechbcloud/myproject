@@ -1,0 +1,38 @@
+name: Trigger Google Cloud Build
+
+on:
+  push:
+    branches:
+      - main  # Triggers whenever you push to the main branch
+
+jobs:
+  deploy-to-azure-via-gcp:
+    runs-on: ubuntu-latest
+    
+    # Required for Google Workload Identity (if you use it later)
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 1: Authenticate with Google Cloud
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      # Step 2: Set up gcloud CLI
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      # Step 3: Submit the build to Google Cloud Build
+      # Note: We pass the Azure Secret from GitHub Secrets into the GCP substitution
+      - name: 'Run Cloud Build'
+        run: |
+          gcloud builds submit . \
+            --config=cloudbuild.yaml \
+            --substitutions=_AZ_PASSWORD="${{ secrets.AZURE_CLIENT_SECRET }}"
