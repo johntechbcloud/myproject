@@ -20,14 +20,14 @@ steps:
       - |
         az deployment group create \
           --resource-group $_AZ_RESOURCE_GROUP \
-          --template-file ./vnet.bicep \
-          --parameters vnet.parameters.json
+          --template-file ./main.bicep \
+          --parameters main.bicepparam
 
 # Use substitutions to keep sensitive IDs out of the code
 substitutions:
-  _AZ_APP_ID: 'your-azure-app-id'
-  _AZ_TENANT_ID: 'your-azure-tenant-id'
-  _AZ_RESOURCE_GROUP: 'your-resource-group-name'
+  _AZ_APP_ID: '9fb07566-6a3f-40aa-bc8b-4d565b3a3b7c'
+  _AZ_TENANT_ID: '45837063-e94d-4d49-a3af-3b79a5352a4c'
+  _AZ_RESOURCE_GROUP: 'rg-testlab'
 
 # Options to speed up the build
 options:
